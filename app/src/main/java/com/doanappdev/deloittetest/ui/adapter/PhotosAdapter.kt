@@ -12,6 +12,8 @@ class PhotosAdapter(private val viewItems: List<ViewItem>) : RecyclerView.Adapte
     private var delegateAdapters = SparseArrayCompat<ViewTypeDelegateAdapter>()
 
     init {
+        // we can add other delegate adapters here to handle different view types
+        // eg. if we wanted to display image view with round borders
         delegateAdapters.put(PHOTO_ITEM, PhotoDelegateAdapter())
     }
 

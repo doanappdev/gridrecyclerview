@@ -7,10 +7,12 @@ import android.view.View
 import com.doanappdev.deloittetest.DeloitteTestApp
 import com.doanappdev.deloittetest.R
 import com.doanappdev.deloittetest.base.ViewItem
+import com.doanappdev.deloittetest.base.setRightDrawableOnTouchListener
 import com.doanappdev.deloittetest.ui.adapter.PhotosAdapter
 import kotlinx.android.synthetic.main.activity_photos.*
 import javax.inject.Inject
-import org.jetbrains.anko.info
+import android.app.Activity
+import android.view.inputmethod.InputMethodManager
 
 
 class PhotosActivity : AppCompatActivity(), PhotosContract.View {
@@ -25,20 +27,27 @@ class PhotosActivity : AppCompatActivity(), PhotosContract.View {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photos)
         DeloitteTestApp.appComponent.inject(this)
+        presenter.attach(this)
 
         if (savedInstanceState != null) {
-            val searchTerm = savedInstanceState.getString(KEY_SEARCH_TERM)
-            info { "searchTerm : $searchTerm" }
+            val search = savedInstanceState.getString(KEY_SEARCH_TERM)
+            when(search.isNotEmpty()) {
+                true -> {
+                    searchEditText.setText(search.toString())
+                    presenter.searchFlicker(search)
+                }
+            }
         }
 
-
-        presenter.attach(this)
-        presenter.subscribe()
-
+        searchEditText.setRightDrawableOnTouchListener {
+            showProgressBar()
+            hideKeyboard()
+            presenter.searchFlicker(this.text.toString())
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
-        outState?.putString(KEY_SEARCH_TERM, searchInput.text.toString())
+        outState?.putString(KEY_SEARCH_TERM, searchEditText.text.toString())
         super.onSaveInstanceState(outState)
     }
 
@@ -47,7 +56,6 @@ class PhotosActivity : AppCompatActivity(), PhotosContract.View {
         recyclerView.apply {
             layoutManager = GridLayoutManager(context, SPAN_COUNT)
             adapter = PhotosAdapter(viewItems)
-
         }
     }
 
@@ -58,5 +66,14 @@ class PhotosActivity : AppCompatActivity(), PhotosContract.View {
 
     override fun hideProgressBar() {
         progressBar.visibility = View.GONE
+    }
+
+    fun hideKeyboard() {
+        val imm = this.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        var view = this.currentFocus
+        if (view == null) {
+            view = View(this)
+        }
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 }

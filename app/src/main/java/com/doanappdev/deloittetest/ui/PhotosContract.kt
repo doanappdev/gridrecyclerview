@@ -12,5 +12,7 @@ interface PhotosContract {
     }
 
 
-    interface Presenter : BaseContract.Presenter<View>
+    interface Presenter : BaseContract.Presenter<View> {
+        fun searchFlicker(searchTerm: String)
+    }
 }

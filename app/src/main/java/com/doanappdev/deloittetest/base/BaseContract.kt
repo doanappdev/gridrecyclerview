@@ -6,7 +6,7 @@ interface BaseContract {
     interface View
 
     interface Presenter<T : View> : AnkoLogger {
-        var view: T
+        var view: T?
         fun attach(view: T)
         fun subscribe()
     }

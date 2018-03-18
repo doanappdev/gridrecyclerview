@@ -2,7 +2,6 @@ package com.doanappdev.deloittetest.ui
 
 import com.doanappdev.deloittetest.base.ViewItem
 import com.doanappdev.deloittetest.base.convertToBoolean
-import com.doanappdev.deloittetest.data.models.Photo
 import com.doanappdev.deloittetest.data.models.PhotoItem
 import com.doanappdev.deloittetest.repository.PhotoRepository
 import org.jetbrains.anko.AnkoLogger
@@ -10,38 +9,39 @@ import org.jetbrains.anko.info
 
 class PhotosPresenter constructor(val repository: PhotoRepository) : PhotosContract.Presenter, AnkoLogger {
 
-    override lateinit var view: PhotosContract.View
+    override var view: PhotosContract.View? = null
+
+    private var photoViewItems = mutableListOf<ViewItem>()
+
 
     override fun attach(view: PhotosContract.View) {
        this.view = view
     }
 
-    override fun subscribe() {
-        view.showProgressBar()
-        repository.getPhotoInfo("kittens")
+
+    override fun subscribe() {}
+
+    override fun searchFlicker(searchTerm: String) {
+        repository.getPhotoInfo(searchTerm)
                 .subscribe  ({
-                    val photoInfo = it.photos
-                    val photos = photoInfo.photoList
+                    if (view != null) {
+                        val photoInfo = it.photos
+                        val photos = photoInfo.photoList
+                        photos.map {
+                            photoViewItems.add(PhotoItem(it))
+                        }
 
-                    info { "size : ${photos.size}" }
-
-                    val photoViewItems = mutableListOf<ViewItem>()
-
-                    photos.map {
-                        info { "id : ${it.id}" }
-                        info { "ispublic : ${it.ispublic}" }
-                        info { "isPublic : ${it.ispublic.convertToBoolean()}" }
-                        photoViewItems.add(PhotoItem(it))
+                        view?.hideProgressBar()
+                        view?.setAdapter(photoViewItems)
+                    } else {
+                        // handle device rotation
+                        info { "view is not attached!!" }
                     }
-
-                    info { "stat : ${it.stat}" }
-                    view.hideProgressBar()
-                    view.setAdapter(photoViewItems)
 
                 }, {
                     // handle network error e.g. stop progress bar, display error msg etc..
                     info { "network error" }
-                    view.hideProgressBar()
+                    view?.hideProgressBar()
                 })
     }
 }

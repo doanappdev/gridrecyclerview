@@ -30,7 +30,6 @@ data class Photo(
     fun getUrl() : String {
         // example URL:
         // http://farm{farm}.static.flickr.com/{server}/{id}_{secret}.jpg
-        // https://farm1.staticflickr.com/2/1418878_1e92283336_m.jpg
         return "http://farm%d.static.flickr.com/%s/%s_%s.jpg".format(farm, server, id, secret)
     }
 }
